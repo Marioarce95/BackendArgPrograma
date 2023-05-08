@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/personas")
+@RequestMapping("/api/personas")
 @CrossOrigin(origins = {"https://mgbfrontend.web.app", "http://localhost:4200"})
 public class PersonaController {
 
@@ -43,6 +44,17 @@ public class PersonaController {
         return new ResponseEntity(persona, HttpStatus.OK);
     }
 
+    @GetMapping("/traer/perfil/{id}")
+    public ResponseEntity<Persona> getProfileById(@PathVariable("id") int id) {
+        if (!personaService.existsById(id)) {
+            return new ResponseEntity(new Mensaje("No existe el ID"), HttpStatus.BAD_REQUEST);
+        }
+
+        Persona persona = personaService.getOne(id).get();
+        return new ResponseEntity(persona, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/crear")
     public ResponseEntity<?> create(@RequestBody dtoPersona dto) {
         try {
@@ -54,6 +66,7 @@ public class PersonaController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/borrar/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") int id) {
         if (!personaService.existsById(id)) {
@@ -63,6 +76,7 @@ public class PersonaController {
         return new ResponseEntity(new Mensaje("Persona eliminada"), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/update/{id}")
     public ResponseEntity<?> update(@PathVariable("id") int id, @RequestBody dtoPersona dtopersona) {
         if (!personaService.existsById(id)) {
